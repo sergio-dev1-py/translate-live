@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LiveTranslate</title>
+    <script>
+      try {
+        var theme = localStorage.getItem("lt_theme");
+        if (theme === "dark" || theme === "light") {
+          document.documentElement.dataset.theme = theme;
+        }
+        var lang = localStorage.getItem("lt_ui_language") || "es";
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === "ar" || lang === "he" ? "rtl" : "ltr";
+      } catch (error) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
