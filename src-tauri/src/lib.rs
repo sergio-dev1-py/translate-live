@@ -27,6 +27,7 @@ pub fn run() {
         .manage(AppState::new(initial_settings))
         .setup(|app| {
             position_pill(app.handle());
+            setup_pill_region(app.handle());
             tray::setup(app.handle())?;
             setup_shortcut(app.handle())?;
             setup_settings_window(app.handle());
@@ -76,11 +77,94 @@ fn position_pill(app: &tauri::AppHandle) {
     };
     let size = window
         .outer_size()
-        .unwrap_or(tauri::PhysicalSize::new(240, 52));
+        .unwrap_or(tauri::PhysicalSize::new(100, 32));
     let x = monitor.position().x + (monitor.size().width as i32 - size.width as i32) / 2;
-    let y = monitor.position().y + monitor.size().height as i32 - size.height as i32 - 64;
+    let y = monitor.position().y + monitor.size().height as i32 - size.height as i32 - 56;
     let _ = window.set_position(tauri::PhysicalPosition::new(x, y));
 }
+
+#[cfg(target_os = "windows")]
+fn setup_pill_region(app: &tauri::AppHandle) {
+    let Some(window) = app.get_webview_window("pill") else {
+        return;
+    };
+    force_pill_style(&window);
+    let _ = window.set_size(tauri::LogicalSize::new(100.0, 32.0));
+    position_pill(app);
+    apply_pill_region(&window);
+
+    let window_for_event = window.clone();
+    window.on_window_event(move |event| {
+        if matches!(
+            event,
+            tauri::WindowEvent::Resized(_) | tauri::WindowEvent::ScaleFactorChanged { .. }
+        ) {
+            apply_pill_region(&window_for_event);
+        }
+    });
+}
+
+#[cfg(target_os = "windows")]
+fn force_pill_style(window: &tauri::WebviewWindow) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GetWindowLongPtrW, SetWindowLongPtrW, SetWindowPos, GWL_STYLE, SWP_FRAMECHANGED,
+        SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER, WS_CAPTION, WS_MAXIMIZEBOX,
+        WS_MINIMIZEBOX, WS_POPUP, WS_SYSMENU, WS_THICKFRAME,
+    };
+
+    let Ok(hwnd) = window.hwnd() else {
+        return;
+    };
+    let hwnd = HWND(hwnd.0);
+    let style = unsafe { GetWindowLongPtrW(hwnd, GWL_STYLE) } as u32;
+    let decorations =
+        WS_CAPTION.0 | WS_THICKFRAME.0 | WS_SYSMENU.0 | WS_MINIMIZEBOX.0 | WS_MAXIMIZEBOX.0;
+    let popup_style = (style & !decorations) | WS_POPUP.0;
+
+    unsafe {
+        SetWindowLongPtrW(hwnd, GWL_STYLE, popup_style as isize);
+        let _ = SetWindowPos(
+            hwnd,
+            None,
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED,
+        );
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn apply_pill_region(window: &tauri::WebviewWindow) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::Graphics::Gdi::{CreateRoundRectRgn, SetWindowRgn};
+
+    let Ok(hwnd) = window.hwnd() else {
+        return;
+    };
+    let Ok(size) = window.outer_size() else {
+        return;
+    };
+    let scale = window.scale_factor().unwrap_or(1.0);
+    let inset = (2.0 * scale).round() as i32;
+    let radius = (14.0 * scale).round() as i32;
+    let right = (size.width as i32 - inset).max(inset + 1);
+    let bottom = (size.height as i32 - inset).max(inset + 1);
+    let region = unsafe {
+        CreateRoundRectRgn(inset, inset, right, bottom, radius * 2, radius * 2)
+    };
+    if region.is_invalid() {
+        return;
+    }
+    unsafe {
+        SetWindowRgn(HWND(hwnd.0), Some(region), true);
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn setup_pill_region(_app: &tauri::AppHandle) {}
 
 fn setup_settings_window(app: &tauri::AppHandle) {
     let Some(settings) = app.get_webview_window("settings") else {

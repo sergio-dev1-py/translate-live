@@ -23,7 +23,7 @@
 ## Features
 
 - **Real-time speech-to-speech translation** with `gemini-3.5-live-translate-preview`.
-- **Compact floating pill** (240 × 52 px): click to start/stop, drag to move, gear to configure.
+- **Compact floating pill** (100 × 32 px): click the language/status area to start/stop, drag the ghost to move, and use the mini gear to configure.
 - **Transparent around the pill** — only the glass pill is visible.
 - **22 UI languages**: English, 简体中文, 繁體中文, 한국어, Deutsch, Español, Français, Italiano, Dansk, 日本語, Polski, Русский, Bosanski, العربية, Norsk, Português (Brasil), עברית, Türkçe, Українська, हिन्दी, Ελληνικά, Tiếng Việt.
 - **Light and dark themes**, light by default.
@@ -76,6 +76,8 @@ Download the latest build from **GitHub Releases**:
 - macOS: `LiveTranslate_<version>_universal.dmg`
 - Linux: `.AppImage` or `.deb`
 
+For the Windows portable build, keep `WebView2Loader.dll` next to `LiveTranslate.exe`; the installer bundles both automatically.
+
 The builds are unsigned. SmartScreen/Gatekeeper may ask for confirmation.
 
 ---
@@ -83,8 +85,8 @@ The builds are unsigned. SmartScreen/Gatekeeper may ask for confirmation.
 ## Usage
 
 1. Open a video, meeting or any app with audio.
-2. Click the pill (`AUTO → ES`).
-3. The pill changes to **LIVE** and the translated voice starts playing.
+2. Click the language/status area of the pill (`AUTO → ES`).
+3. The status dot turns green and the translated voice starts playing.
 4. Click again to stop.
 5. Use the gear to configure the API key, devices, appearance and language.
 

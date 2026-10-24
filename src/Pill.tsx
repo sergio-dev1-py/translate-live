@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useState, type MouseEvent } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -23,13 +23,13 @@ export default function Pill() {
   const { t, dir } = useI18n();
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
-  const [level, setLevel] = useState(0);
   const [target, setTarget] = useState("es");
   const [detected, setDetected] = useState<string | null>(null);
   const [hasKey, setHasKey] = useState(true);
   const [busy, setBusy] = useState(false);
 
   const isActive = ACTIVE_STATES.includes(status);
+  const sourceCode = detected ? shortCode(detected) : "AUTO";
 
   const load = useCallback(async () => {
     try {
@@ -53,9 +53,6 @@ export default function Pill() {
       listen<StatusPayload>("translation-status", (event) => {
         setStatus((event.payload.state as Status) || "idle");
         setMessage(event.payload.message || "");
-      }),
-      listen<number>("translation-level", (event) => {
-        setLevel(Math.max(0, Math.min(1, Number(event.payload) || 0)));
       }),
       listen<LanguagePayload>("translation-language", (event) => {
         if (event.payload.code) setDetected(event.payload.code);
@@ -106,18 +103,10 @@ export default function Pill() {
     void getCurrentWindow().startDragging();
   }, []);
 
-  const sourceLabel = useMemo(
-    () => (detected ? `AUTO (${shortCode(detected)})` : "AUTO"),
-    [detected]
-  );
-
-  const bars = [0.45, 1, 0.68].map((weight) =>
-    Math.max(0.12, Math.min(1, level * 2.8 * weight))
-  );
-
   const stateLabel = !hasKey
     ? t("pill.noKey")
     : t(STATE_KEYS[status] ?? "pill.ready");
+  const tooltip = message ? `${stateLabel} · ${message}` : stateLabel;
 
   return (
     <div className="pill-shell">
@@ -128,31 +117,21 @@ export default function Pill() {
           aria-label={t("pill.drag")}
           title={t("pill.drag")}
         >
-          <GhostIcon size={14} />
+          <GhostIcon size={10} strokeWidth={1.9} />
         </button>
 
         <button
           className="status-area"
           onClick={toggle}
           aria-label={isActive ? t("pill.stop") : t("pill.start")}
-          title={message || (isActive ? t("pill.stop") : t("pill.start"))}
+          title={tooltip}
         >
-          <div className="lang-row">
-            <span className="status-dot" data-state={!hasKey ? "error" : status} />
-            <span className="lang-pair">
-              {sourceLabel}{" "}
-              <span className="lang-arrow">{dir === "rtl" ? "←" : "→"}</span>{" "}
-              {shortCode(target)}
-            </span>
-          </div>
-          <div className="state-row">
-            <span className="state-label">{stateLabel}</span>
-            <span className="level-bars" data-live={status === "live"} aria-hidden="true">
-              {bars.map((value, index) => (
-                <span key={index} style={{ transform: `scaleY(${value})` }} />
-              ))}
-            </span>
-          </div>
+          <span className="status-dot" data-state={!hasKey ? "error" : status} />
+          <span className="lang-pair">
+            {sourceCode}
+            <span className="lang-arrow">{dir === "rtl" ? "←" : "→"}</span>
+            {shortCode(target)}
+          </span>
         </button>
 
         <button
@@ -162,7 +141,7 @@ export default function Pill() {
           aria-label={isActive ? t("pill.stop") : t("pill.start")}
           title={isActive ? t("pill.stop") : t("pill.start")}
         >
-          {busy ? <span className="spinner" /> : isActive ? <StopIcon size={13} /> : <PlayIcon size={15} />}
+          {busy ? <span className="spinner" /> : isActive ? <StopIcon size={9} /> : <PlayIcon size={11} />}
         </button>
 
         <button
@@ -171,7 +150,7 @@ export default function Pill() {
           aria-label={t("pill.settings")}
           title={t("pill.settings")}
         >
-          <GearIcon size={15} />
+          <GearIcon size={11} />
         </button>
       </div>
     </div>

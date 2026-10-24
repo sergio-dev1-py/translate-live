@@ -240,10 +240,6 @@ export default function Settings() {
     void invoke("open_url", { url: API_KEY_URL });
   };
 
-  const close = () => {
-    void invoke("close_settings");
-  };
-
   const restartNow = () => {
     void invoke("restart_app").catch((error) => {
       showToast("error", localizeError(error, t));
@@ -344,9 +340,6 @@ export default function Settings() {
                     : t("advanced.desc")}
             </p>
           </div>
-          <button className="close-button" onClick={close} aria-label={t("settings.close")}>
-            ✕
-          </button>
         </header>
 
         <div className="settings-content">
@@ -805,9 +798,6 @@ export default function Settings() {
 
         <footer className="settings-footer">
           <span className="footer-note">{t("settings.footerNote")}</span>
-          <button className="ghost-button" onClick={close}>
-            {t("settings.close")}
-          </button>
           <button className="primary-action" onClick={() => void save(false)} disabled={saving || loading}>
             {saving ? <span className="spinner" /> : <CheckIcon />}
             {t("settings.save")}
