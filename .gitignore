@@ -1,11 +1,42 @@
+# Dependencies
 node_modules/
+
+# Frontend build output
 dist/
+*.tsbuildinfo
+
+# Rust / Tauri build output
 src-tauri/target/
 src-tauri/gen/
+
+# Local release artifacts (use GitHub Releases instead)
 releases/
+*.msi
+*.dmg
+*.AppImage
+*.deb
+
+# Logs and debug symbols
 *.log
-tsconfig.tsbuildinfo
-.DS_Store
-Thumbs.db
 *.pdb
 *.dSYM/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+settings.json
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
